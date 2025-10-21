@@ -35,6 +35,9 @@ ScreewEngageDiameter = 3;
 // Gap between parts
 Gap = 0.5;
 
+// Calculating the height of screew's head
+ScreewHeadHeight = (ScreewHeadDiamenter - ScreewEngageDiameter) / 2;
+
 // Calculating the external diameter of the adapter considering the gap
 DrainExternalDiameter = PipeExternalDiamenter - 2 * PipeThickness - 2 * Gap;
 DrainInternalDiameter = DrainExternalDiameter - 2 * GlobalThickness;
@@ -176,6 +179,27 @@ module Cup() // make me
   rotate_extrude(angle=360, convexity=2) CupCut();
 }
 
+module Washer() // make me
+{
+  WasherThickness = GlobalThickness + ScreewHeadHeight;
+  rotate_extrude(angle=360, convexity=2)
+    difference() {
+      union() {
+        translate(v=[ScreewPassDiameter / 2, 0])
+          square(size=[1.5 * ScreewHeadDiamenter - WasherThickness / 2, WasherThickness], center=false);
+        translate(v=[ScreewPassDiameter / 2 + 1.5 * ScreewHeadDiamenter - WasherThickness / 2, WasherThickness / 2])
+          rotate(a=30)
+            circle(d=WasherThickness, $fn=6);
+      }
+      translate(v=[0, -Gap])
+        rotate(a=45)
+          square(size=[ScreewHeadDiamenter, WasherThickness], center=false);
+    }
+}
+
+Washer();
+
+/*
 translate(v=[0, 0, CupElevationFromBotton + GlobalThickness])
 
   %Cup();
