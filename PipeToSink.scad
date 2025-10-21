@@ -19,19 +19,25 @@
 // Thickness of the piece
 GlobalThickness = 2;
 // External diameter of the pipe
-PipeExternalDiamenter = 100;
+PipeExternalDiamenter = 101.6;
 // Thickness of the pipe
-PipeThickness = 1;
+PipeThickness = 1.8;
 // Level of water inside the siphon seal 
 WaterLevel = 50;
 // Space bellow the grid
 DrainSpace = 20;
+// Extra lenght over the pipe ending
+DrainExtraLenght = 50;
 // Screew's head diameter
 ScreewHeadDiamenter = 8;
 // Screew's pass-throu diameter
 ScreewPassDiameter = 4;
 // Screew's engaging diameter
 ScreewEngageDiameter = 3;
+// Lenght of the screew
+ScreewLenght = 25;
+//Angle of the transition on the edge of the pipe
+TransitionAngle = 30;
 // Gap between parts
 Gap = 0.5;
 
@@ -98,9 +104,20 @@ module Fillet(FilletInternalRadius = 10) {
 module MainBodyCut() {
   FilletRadiusExternal = (DrainInternalDiameter - CupExternalDiameter) / 2;
   FilletRadiusInternal = (CupInternalDiameter - ExitExternalDiameter) / 2;
+  TransitionLength = (PipeExternalDiamenter - DrainInternalDiameter) / 2;
   // External Wall
   translate(v=[DrainInternalDiameter / 2, FilletRadiusExternal + GlobalThickness, 0])
     square(size=[GlobalThickness, DrainExternalHeight - FilletRadiusExternal - GlobalThickness], center=false);
+  translate(v=[PipeExternalDiamenter / 2 - GlobalThickness, DrainExternalHeight + (TransitionLength) * tan(TransitionAngle) - GlobalThickness / cos(TransitionAngle)])
+    square(size=[GlobalThickness, DrainExtraLenght], center=false);
+  translate(v=[DrainInternalDiameter / 2, DrainExternalHeight])
+    difference() {
+      rotate(a=TransitionAngle)
+        translate(v=[0, -GlobalThickness])
+          square(size=[TransitionLength / cos(TransitionAngle), GlobalThickness], center=false);
+      translate(v=[TransitionLength, 0])
+        square(size=TransitionLength, center=false);
+    }
   // Botton
   translate(v=[ExitInternalDiameter / 2 + FilletIntersection(FilletRadius=FilletRadiusInternal), 0])
     square(
@@ -143,35 +160,52 @@ module CupCut() {
     Fillet(FilletInternalRadius);
 }
 
-module MainBody() // make me
-{
+module ScreewSupport() {
   ScreewHousingDiamenter = ScreewPassDiameter + 2 * GlobalThickness;
-  rotate_extrude(angle=360, convexity=2) MainBodyCut();
-  translate(v=[0, 0, CupElevationFromBotton + GlobalThickness])
+  ScreewHousingHeight = ScreewHousingDiamenter / 2 + ScreewLenght;
+  ScreewHousingElevation = ExitNominalDiameter * sin(30) / 2;
+  //Screew housing
+  translate(v=[0, 0, -ScreewHousingHeight - ScreewHousingElevation])
     difference() {
-      union() {
-        intersection() {
-          translate(v=[-GlobalThickness / 2, -ExitNominalDiameter / 2, 0])
-            cube(size=[GlobalThickness, ExitNominalDiameter, ExitInternalHeigth - CupElevationFromBotton + CupElevationFromTop], center=false);
-          union() {
-            difference() {
-              cylinder(h=ExitInternalHeigth - CupElevationFromBotton, d=ExitNominalDiameter, center=false);
-              cylinder(h=ExitNominalDiameter * sin(30) / 2, d1=ExitNominalDiameter, d2=0, center=false);
+      intersection() {
+        union() {
+          translate(v=[0, 0, ScreewHousingElevation])
+            union() {
+              cylinder(h=ScreewHousingDiamenter / 2, d1=0, d2=ScreewHousingDiamenter, center=false);
+              translate(v=[0, 0, ScreewHousingDiamenter / 2])
+                cylinder(h=ScreewLenght, d=ScreewHousingDiamenter, center=false);
+              translate(v=[0, 0, ScreewHousingHeight - GlobalThickness]) {
+                cylinder(h=GlobalThickness, d=1.5 * ScreewHeadDiamenter, center=false);
+                translate(v=[0, 0, -1.5 * ScreewHeadDiamenter / 2])
+                  cylinder(h=1.5 * ScreewHeadDiamenter / 2, d1=0, d2=1.5 * ScreewHeadDiamenter, center=false);
+              }
             }
-            translate(v=[0, 0, ExitInternalHeigth - CupElevationFromBotton])
-              cylinder(h=CupElevationFromTop, d1=ExitNominalDiameter, d2=ScreewHousingDiamenter, center=false);
+          for (i = [0:2]) {
+            rotate(a=i * 120)
+              translate(v=[0, -GlobalThickness / 2, 0])
+                cube(size=[ExitNominalDiameter / 2, GlobalThickness, ScreewHousingElevation + ScreewHousingHeight], center=false);
           }
         }
-        translate(v=[0, 0, ExitNominalDiameter * sin(30) / 2])
+        // Envoltorium
+        difference() {
           union() {
-            cylinder(h=ScreewHousingDiamenter / 2, d1=0, d2=ScreewHousingDiamenter, center=false);
-            translate(v=[0, 0, ScreewHousingDiamenter / 2])
-              cylinder(h=ExitInternalHeigth - CupElevationFromBotton + CupElevationFromTop - ScreewHousingDiamenter / 2 - ExitNominalDiameter * sin(30) / 2, d=ScreewHousingDiamenter);
+            translate(v=[0, 0, ScreewHousingElevation + ScreewHousingHeight - CupElevationFromTop])
+              cylinder(h=CupElevationFromTop, d1=ExitNominalDiameter, d2=1.5 * ScreewHeadDiamenter, center=false);
+            cylinder(h=ScreewLenght + ScreewHousingDiamenter / 2, d=ExitNominalDiameter, center=false);
           }
+          cylinder(h=ScreewHousingElevation, d1=ExitNominalDiameter, d2=0, center=false);
+        }
       }
-      translate(v=[0, 0, ExitNominalDiameter * sin(30) / 2])
-        cylinder(h=ExitInternalHeigth + 2 * GlobalThickness, d=ScreewEngageDiameter, center=false);
+      translate(v=[0, 0, ScreewHousingElevation + ScreewHousingDiamenter / 2])
+        cylinder(h=ScreewLenght + 1, d=ScreewEngageDiameter, center=false);
     }
+}
+
+module MainBody() // make me
+{
+  rotate_extrude(angle=360, convexity=2) MainBodyCut();
+  translate(v=[0, 0, ExitInternalHeigth + GlobalThickness + CupElevationFromTop])
+    ScreewSupport();
 }
 
 module Cup() // make me
@@ -197,16 +231,14 @@ module Washer() // make me
     }
 }
 
-Washer();
-
-/*
+translate(v=[0, 0, CupElevationFromBotton + 2 * GlobalThickness + CupInternalHeigth])
+  Washer();
 translate(v=[0, 0, CupElevationFromBotton + GlobalThickness])
-
-  %Cup();
+  Cup();
 MainBody();
-
+//*/
 /*
-translate(v=[0, CupElevationFromBotton+GlobalThickness])
+translate(v=[0, CupElevationFromBotton + GlobalThickness])
   CupCut();
 MainBodyCut();
 //*/
