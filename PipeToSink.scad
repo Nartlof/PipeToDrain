@@ -39,7 +39,7 @@ ScreewLenght = 25;
 //Angle of the transition on the edge of the pipe
 TransitionAngle = 30;
 // Gap between parts
-Gap = 0.5;
+Gap = 0.25;
 
 // Calculating the height of screew's head
 ScreewHeadHeight = (ScreewHeadDiamenter - ScreewEngageDiameter) / 2;
