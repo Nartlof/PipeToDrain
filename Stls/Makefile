@@ -1,5 +1,5 @@
 SCAD=openscad
-BASEFILE=../PipeToDrain.scad
+BASEFILE=../PipeToSink.scad
 
 TARGETS=$(shell sed '/^module [a-z0-9_-]*\(\).*make..\?me.*$$/!d;s/module //;s/().*/.stl/' $(BASEFILE))
 
