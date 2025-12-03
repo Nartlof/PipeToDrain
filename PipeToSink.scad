@@ -207,7 +207,7 @@ module ScreewSupport() {
 
 module MainBody() // make me
 {
-  rotate_extrude(angle=360, convexity=2) !MainBodyCut();
+  rotate_extrude(angle=360, convexity=2) MainBodyCut();
   translate(v=[0, 0, ExitInternalHeigth + GlobalThickness + CupElevationFromTop])
     ScreewSupport();
 }
