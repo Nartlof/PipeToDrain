@@ -20,6 +20,8 @@
 GlobalThickness = 2;
 // External diameter of the pipe
 PipeExternalDiamenter = 101.6;
+// Correction for compression on the intake pipe (should be zero on a perfectly round tube)
+OvalShapeCorrection = 3;
 // Thickness of the pipe
 PipeThickness = 1.8;
 // Level of water inside the siphon seal 
@@ -45,7 +47,7 @@ Gap = 0.25;
 ScreewHeadHeight = (ScreewHeadDiamenter - ScreewEngageDiameter) / 2;
 
 // Calculating the external diameter of the adapter considering the gap
-DrainExternalDiameter = PipeExternalDiamenter - 2 * PipeThickness - 2 * Gap;
+DrainExternalDiameter = PipeExternalDiamenter - 2 * PipeThickness - 2 * Gap - OvalShapeCorrection;
 DrainInternalDiameter = DrainExternalDiameter - 2 * GlobalThickness;
 // The nominal diameter of the part is used to calculate the relations of areas
 DrainNominalDiametar = (DrainExternalDiameter + DrainInternalDiameter) / 2;
@@ -72,6 +74,8 @@ CupInternalHeigth = CupElevationFromTop + WaterLevel;
 ExitInternalHeigth = CupElevationFromBotton + WaterLevel;
 // The total height of the drain is the sum of all internal heights pluss the space above the cup
 DrainExternalHeight = GlobalThickness + CupElevationFromBotton + WaterLevel + CupElevationFromTop + GlobalThickness + DrainSpace;
+
+echo(DrainExternalDiameter);
 
 $fa = ($preview) ? $fa : 2;
 $fs = ($preview) ? $fs : .2;
@@ -203,7 +207,7 @@ module ScreewSupport() {
 
 module MainBody() // make me
 {
-  rotate_extrude(angle=360, convexity=2) MainBodyCut();
+  rotate_extrude(angle=360, convexity=2) !MainBodyCut();
   translate(v=[0, 0, ExitInternalHeigth + GlobalThickness + CupElevationFromTop])
     ScreewSupport();
 }
